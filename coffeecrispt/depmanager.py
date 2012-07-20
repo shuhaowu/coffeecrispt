@@ -59,6 +59,6 @@ def get_all_modules_sorted(path): # Algorithm of topsort adapted from wikipedia'
         s.append(mn)
 
   if sum([len(x) for x in foredeps.values()]) > 0:
-    raise DependencyError("There's a cycle in your code: %s" % foredeps)
+    raise DependencyError("There's a cycle or an unsatisfied dep in your code: %s" % foredeps)
   else:
     return sortedmodules, modules

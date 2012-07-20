@@ -1,0 +1,58 @@
+#!/usr/bin/python
+
+from coffeecrispt import *
+import argparse
+import os
+import datetime, time
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
+def compile_once(output_location, minify):
+  print "[%s] Attempting compilation ..." % str(datetime.datetime.now()),
+  try:
+    output = compile_project(os.getcwd(), minify)
+  except (CompileError, DependencyError) as e:
+    print "Error: %s" % e.message
+  else:
+    try:
+      with open(output_location, "w") as f:
+        f.write(output)
+    except IOError as e:
+      print "Error: %s" % e.message
+    else:
+      print "Success! At location %s" % output_location
+
+
+class CompileHandler(FileSystemEventHandler):
+  def __init__(self, location, minify):
+    self.location = location
+    self.minify = minify
+
+  def on_any_event(self, event):
+    _t = event.src_path.rsplit(".", 1)
+    if len(_t) > 1 and _t[1] == "coffee":
+      compile_once(self.location, self.minify)
+
+if __name__ == "__main__":
+  parser = argparse.ArgumentParser()
+  parser.add_argument("-c", "--compile", action="store_true", help="Compile once and exits.")
+  parser.add_argument("-w", "--watch", action="store_true", help="Repeatedly compiles and watches for changes.")
+  parser.add_argument("-m", "--minify", action="store_true", help="Minifies the javascript.")
+  parser.add_argument("location", type=str, help="The location of the output script, concatenated")
+  args = parser.parse_args()
+  if args.compile or (not args.compile and not args.watch):
+    compile_once(args.location, args.minify)
+  elif args.watch:
+    handler = CompileHandler(args.location, args.minify)
+    observer = Observer()
+    observer.schedule(handler, path=".", recursive=True)
+    compile_once(args.location, args.minify)
+    observer.start()
+    try:
+      while True:
+        time.sleep(1)
+    except KeyboardInterrupt:
+      observer.stop()
+    observer.join()
+
+
