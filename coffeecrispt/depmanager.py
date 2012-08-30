@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 
 class DependencyError(Exception): pass
 
@@ -52,13 +53,18 @@ def get_all_modules_sorted(path): # Algorithm of topsort adapted from wikipedia'
   while len(s) > 0:
     module_name = s.pop()
     sortedmodules.append(module_name)
-    depended_modules = backdeps.get(module_name, [])
-    for mn in depended_modules:
+    modules_depended = backdeps.get(module_name, [])
+    for mn in modules_depended:
       foredeps[mn].remove(module_name)
       if len(foredeps[mn]) == 0:
         s.append(mn)
 
   if sum([len(x) for x in foredeps.values()]) > 0:
-    raise DependencyError("There's a cycle or an unsatisfied dep in your code: %s" % foredeps)
+    print >> sys.stderr, "There's a cycle or an unsatisfied dep in your code!"
+    for x in foredeps:
+      if len(foredeps[x]) > 0:
+        print >> sys.stderr, "Module '%s' depends on %s but are not found!" % (x, foredeps[x])
+        break
+    raise DependencyError("Dependency Unsatisfied. There may be other dep problems, but fix this first!")
   else:
     return sortedmodules, modules
