@@ -25,7 +25,7 @@ def get_all_modules(path):
 
   return modules
 
-_require_regex = re.compile(r"#require ([a-zA-Z_][a-zA-Z0-9_.]*)")
+_require_regex = re.compile(r"require[ (][\"']([a-zA-Z_][a-zA-Z0-9_.]*)[\"'][)]{0,1}")
 def get_dep(path):
   with open(path) as f:
     content = f.read()

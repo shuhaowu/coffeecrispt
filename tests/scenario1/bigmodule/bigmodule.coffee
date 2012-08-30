@@ -1,1 +1,2 @@
-#require bigmodule.anothermodule
+namespace 'bigmodule'
+require 'bigmodule.anothermodule'

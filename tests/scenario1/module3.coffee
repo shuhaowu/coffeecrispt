@@ -1,1 +1,2 @@
-#require bigmodule
+namespace 'module3'
+require 'bigmodule'

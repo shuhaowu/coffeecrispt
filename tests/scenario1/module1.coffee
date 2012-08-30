@@ -1,5 +1,6 @@
-#require module2
-#require module3
+namespace "module1"
+require "module2"
+require "module3"
 
 module1awesome = () -> 3
 
