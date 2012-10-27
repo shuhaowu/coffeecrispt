@@ -4,6 +4,7 @@ import sys
 
 class DependencyError(Exception): pass
 
+_namespace_regex = re.compile(r"namespace[ (][\"']([a-zA-Z_][a-zA-Z0-9_.]*)[\"'][)]{0,1}")
 def get_all_modules(path):
   modules = {}
   for root, folders, files in os.walk(path):
@@ -12,14 +13,24 @@ def get_all_modules(path):
     current_module = ".".join(current_folder)
     for fname in files:
       abs_filename = root + os.sep + fname
+
       if fname.endswith(".coffee"):
-        if not current_module:
-          module_name = fname[:-7]
-        else:
-          if fname == current_folder[-1] + ".coffee":
-            module_name = current_module
+        with open(abs_filename) as f: # override
+          content = f.read()
+          n = _namespace_regex.search(content)
+          if n:
+            module_name = n.group(1)
           else:
-            module_name = current_module + "." + fname[:-7]
+            module_name = None
+
+        if not module_name:
+          if not current_module:
+            module_name = fname[:-7]
+          else:
+            if fname == current_folder[-1] + ".coffee":
+              module_name = current_module
+            else:
+              module_name = current_module + "." + fname[:-7]
 
         modules[module_name] = abs_filename
 
